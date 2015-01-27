@@ -1,17 +1,22 @@
-package com.connect.connectfour;
+package com.connect.connectfour.activity;
 
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.connect.connectfour.R;
+import com.connect.connectfour.game.ConnectFour;
+
 
 public class MainActivity extends ActionBarActivity {
+    private ConnectFour mConnectFour;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        mConnectFour = ConnectFour.getInstance();
     }
 
 

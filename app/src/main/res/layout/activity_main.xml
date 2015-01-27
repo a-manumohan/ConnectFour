@@ -5,4 +5,8 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     android:paddingBottom="@dimen/activity_vertical_margin" tools:context=".MainActivity">
 
+    <com.connect.connectfour.view.BoardView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/board_view" />
 </RelativeLayout>
