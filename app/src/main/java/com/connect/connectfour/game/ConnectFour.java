@@ -8,10 +8,14 @@ public class ConnectFour {
     private static final int ROW_COUNT = 6;
     private static final int COLUMN_COUNT = 7;
 
+    private ConnectFourListener mConnectFourListener;
+
     public enum Player {
         FIRST_PLAYER,
         SECOND_PLAYER
     }
+
+    private Player mCurrentPlayer = Player.FIRST_PLAYER;
 
 
     public Node[][] mGameState;
@@ -24,10 +28,11 @@ public class ConnectFour {
         mGameState[3][4].isEmpty();
     }
 
-    public static ConnectFour getInstance() {
+    public static ConnectFour getInstance(ConnectFourListener connectFourListener) {
         if (mSharedConnectFour == null) {
             mSharedConnectFour = new ConnectFour();
         }
+        mSharedConnectFour.mConnectFourListener = connectFourListener;
         return mSharedConnectFour;
     }
 
@@ -35,41 +40,76 @@ public class ConnectFour {
      * @param player
      * @return true if won
      */
-    public boolean checkWhetherWon(Player player) {
-        return false;
+    public boolean checkWhetherWon(Player player, int row, int column) {
+        return checkVerticalPattern(player, column) || checkHorizontalPattern(player, row) || checkDiagonalPattern(player, row, column);
     }
 
-    private boolean checkVerticalPattern(Player player){
+    private boolean checkVerticalPattern(Player player, int column) {
         int count = 0;
-        for (int j = 0; j < COLUMN_COUNT; ++j)
-        for(int i = 0; i < ROW_COUNT - 1; ++ i){
-            if(mGameState[i][j].isEmpty())continue;
-            if(mGameState[i][j].getPlayer() != player){ count = 0; continue;}
+        for (int i = 0; i < ROW_COUNT - 1; ++i) {
+            if (mGameState[i][column].isEmpty()) continue;
+            if (mGameState[i][column].getPlayer() != player) {
+                count = 0;
+                continue;
+            }
             count++;
-            if(count == 4)return true;
+            if (count == 4) return true;
         }
         return false;
     }
-    private boolean checkHorizontalPattern(Player player){
+
+    private boolean checkHorizontalPattern(Player player, int row) {
         int count = 0;
-        for (int j = 0; j < ROW_COUNT; ++j)
-            for(int i = 0; i < COLUMN_COUNT - 1; ++ i){
-                if(mGameState[i][j].isEmpty())continue;
-                if(mGameState[i][j].getPlayer() != player){ count = 0; continue;}
-                count++;
-                if(count == 4)return true;
+        for (int i = 0; i < COLUMN_COUNT - 1; ++i) {
+            if (mGameState[row][i].isEmpty()) continue;
+            if (mGameState[row][i].getPlayer() != player) {
+                count = 0;
+                continue;
             }
+            count++;
+            if (count == 4) return true;
+        }
         return false;
     }
-    private boolean checkDiagonalPattern(Player player){
-        int count = 0;
-        for (int j = 0; j < ROW_COUNT; ++j)
-            for(int i = 0; i < COLUMN_COUNT - 1; ++ i){
-                if(mGameState[i][j].isEmpty())continue;
-                if(mGameState[i][j].getPlayer() != player){ count = 0; continue;}
-                count++;
-                if(count == 4)return true;
+
+    private boolean checkDiagonalPattern(Player player, int row, int column) {
+        int count = 1;
+        int i = 1;
+        while (column - i >= 0 && row - i >= 0) { // left up diagonal
+            if (mGameState[row - i][column - i].isEmpty() ||
+                    mGameState[row - i][column - i].getPlayer() != player) {
+                count = 1;
+                break;
             }
+            count++;
+            if (count == 4) return true;
+        }
+        while (column + i < COLUMN_COUNT && row - i >= 0) { // right up diagonal
+            if (mGameState[row - i][column + i].isEmpty() ||
+                    mGameState[row - i][column + i].getPlayer() != player) {
+                count = 1;
+                break;
+            }
+            count++;
+            if (count == 4) return true;
+        }
+        while (column - i >= 0 && row + i < ROW_COUNT) { // left down diagonal
+            if (mGameState[row + i][column - i].isEmpty() ||
+                    mGameState[row + i][column - i].getPlayer() != player) {
+                count = 1;
+                break;
+            }
+            count++;
+            if (count == 4) return true;
+        }
+        while (column + i >= COLUMN_COUNT && row + i < ROW_COUNT) { // right down diagonal
+            if (mGameState[row + i][column + i].isEmpty() ||
+                    mGameState[row + i][column + i].getPlayer() != player) {
+                break;
+            }
+            count++;
+            if (count == 4) return true;
+        }
         return false;
     }
 
@@ -86,10 +126,28 @@ public class ConnectFour {
         return gameOver;
     }
 
-    public void play(Player player, int column) {
+    public void play(int column) {
         int i = 0;
         while (i < ROW_COUNT && !mGameState[i][column].isEmpty()) ++i;
-        if (i < ROW_COUNT) mGameState[i][column].setPlayer(player);
+        if (i < ROW_COUNT) {
+            mGameState[i][column].setPlayer(mCurrentPlayer);
+            if (checkWhetherWon(mCurrentPlayer, i, column)) {
+                mConnectFourListener.won(mCurrentPlayer);
+            } else if (checkGameOver()) {
+                mConnectFourListener.gameOver();
+            } else {
+                mConnectFourListener.ready();
+            }
+        } else {
+            mConnectFourListener.ready();
+        }
+        mCurrentPlayer = mCurrentPlayer == Player.FIRST_PLAYER ? Player.SECOND_PLAYER : Player.FIRST_PLAYER;
+    }
+
+    public void reset() {
+        for (int i = 0; i < ROW_COUNT; ++i)
+            for (int j = 0; j < COLUMN_COUNT; ++j)
+                mGameState[i][j].setEmpty(true);
     }
 
     private static class Node {
@@ -117,5 +175,17 @@ public class ConnectFour {
         public boolean isEmpty() {
             return empty;
         }
+
+        public void setEmpty(boolean empty) {
+            this.empty = empty;
+        }
+    }
+
+    public static interface ConnectFourListener {
+        public void gameOver();
+
+        public void won(Player player);
+
+        public void ready();
     }
 }

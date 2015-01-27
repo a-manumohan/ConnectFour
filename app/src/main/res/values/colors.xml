@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="board_line_color">#000000</color>
+    <color name="first_player_color">#000FFF</color>
+    <color name="second_player_color">#FFF000</color>
 </resources>

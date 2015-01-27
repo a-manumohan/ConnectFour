@@ -9,12 +9,16 @@ import android.view.MotionEvent;
 import android.view.View;
 
 import com.connect.connectfour.R;
+import com.connect.connectfour.game.ConnectFour;
 
 /**
  * Created by manuMohan on 15/01/27.
  */
 public class BoardView extends View {
+    private BoardViewListener mBoardViewListener;
     private Paint mLinePaint;
+    private Paint mFirstCirclePaint;
+    private Paint mSecondCirclePaint;
 
     private int mWidth, mHeight;
     private int mXlineIndex, mYlineIndex;
@@ -84,6 +88,14 @@ public class BoardView extends View {
         return mGestureDetector.onTouchEvent(event);
     }
 
+    private int getColumn(int x){
+        return x/mXlineIndex;
+    }
+
+    public void setBoardViewListener(BoardViewListener mBoardViewListener) {
+        this.mBoardViewListener = mBoardViewListener;
+    }
+
     private class GestureListener extends GestureDetector.SimpleOnGestureListener {
         @Override
         public boolean onDown(MotionEvent e) {
@@ -95,8 +107,13 @@ public class BoardView extends View {
             mCircleCenterX  = (int) e.getX();
             mCircleCenterY = (int) e.getY();
             postInvalidate();
-
+            mBoardViewListener.playColumn(getColumn(mCircleCenterX));
             return super.onSingleTapUp(e);
         }
+    }
+
+    public static interface BoardViewListener {
+        public ConnectFour getConnectFour();
+        public void playColumn(int column);
     }
 }
