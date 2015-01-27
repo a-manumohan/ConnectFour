@@ -25,7 +25,6 @@ public class ConnectFour {
         for (int i = 0; i < ROW_COUNT; ++i)
             for (int j = 0; j < COLUMN_COUNT; ++j)
                 mGameState[i][j] = new Node();
-        mGameState[3][4].isEmpty();
     }
 
     public static ConnectFour getInstance(ConnectFourListener connectFourListener) {
