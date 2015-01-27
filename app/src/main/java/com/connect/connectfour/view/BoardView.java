@@ -16,14 +16,23 @@ import com.connect.connectfour.game.ConnectFour;
  */
 public class BoardView extends View {
     private BoardViewListener mBoardViewListener;
-    private Paint mLinePaint;
+
+    private Paint mBackgroundPaint;
+    private Paint mCirclePaint;
+    private Paint mOuterCirclePaint;
     private Paint mFirstCirclePaint;
     private Paint mSecondCirclePaint;
 
     private int mWidth, mHeight;
-    private int mXlineIndex, mYlineIndex;
+    private int mColumnIndex;
+    private int mCircleRadius;
 
-    private int mCircleCenterX,mCircleCenterY;
+    private final int minHorizontalMargin = 20;
+    private final int minVerticalMargin = 20;
+    private  int horizontalMargin = 20;
+    private  int verticalMargin = 20;
+
+    private int strokeWidth = 5;
 
     private GestureDetector mGestureDetector;
 
@@ -47,8 +56,23 @@ public class BoardView extends View {
     }
 
     private void init() {
-        mLinePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        mLinePaint.setColor(getContext().getResources().getColor(R.color.board_line_color));
+
+        mBackgroundPaint = new Paint(0);
+        mBackgroundPaint.setColor(getContext().getResources().getColor(R.color.grey));
+
+        mOuterCirclePaint = new Paint(0);
+        mOuterCirclePaint.setStyle(Paint.Style.STROKE);
+        mOuterCirclePaint.setStrokeWidth(strokeWidth);
+        mOuterCirclePaint.setColor(getContext().getResources().getColor(R.color.black));
+
+        mCirclePaint = new Paint(0);
+        mCirclePaint.setColor(getContext().getResources().getColor(R.color.white));
+        mCirclePaint.setStyle(Paint.Style.FILL);
+
+        mFirstCirclePaint = new Paint(0);
+        mFirstCirclePaint.setColor(getContext().getResources().getColor(R.color.first_player_color));
+        mSecondCirclePaint = new Paint(0);
+        mSecondCirclePaint.setColor(getContext().getResources().getColor(R.color.second_player_color));
 
         mGestureDetector = new GestureDetector(this.getContext(), new GestureListener());
     }
@@ -60,8 +84,17 @@ public class BoardView extends View {
         mWidth = w;
         mHeight = h;
 
-        mXlineIndex = w / 7;
-        mYlineIndex = h / 6;
+        mColumnIndex = w / 7;
+
+        if (mWidth > mHeight) {
+            mCircleRadius = (mHeight - 7 * minVerticalMargin) / 12;
+        } else {
+            mCircleRadius = (mWidth - 8 * minHorizontalMargin) / 14;
+        }
+
+        verticalMargin = (mHeight - 12 * mCircleRadius)/7;
+        horizontalMargin = (mWidth - 14 * mCircleRadius)/8;
+
     }
 
     @Override
@@ -72,14 +105,31 @@ public class BoardView extends View {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        for (int i = 0; i <= 7; ++i) {
-            canvas.drawLine(i * mXlineIndex, 0, i * mXlineIndex, mHeight, mLinePaint);
-        }
-        for (int i = 0; i <= 6; ++i) {
-            canvas.drawLine(0, i * mYlineIndex, mWidth, i * mYlineIndex, mLinePaint);
-        }
 
-        canvas.drawCircle(mCircleCenterX,mCircleCenterY,50.0f,mLinePaint);
+        canvas.drawRect(0, 0, mWidth, mHeight, mBackgroundPaint);
+
+        ConnectFour connectFour = mBoardViewListener.getConnectFour();
+        ConnectFour.Node[][] gameState = connectFour.mGameState;
+
+        float cy = mHeight + mCircleRadius;
+        for (int i = 0; i < ConnectFour.ROW_COUNT; ++i) {
+            cy -= (2 * mCircleRadius + verticalMargin);
+            float cx = -mCircleRadius;
+            for (int j = 0; j < ConnectFour.COLUMN_COUNT; ++j) {
+                cx += (2 * mCircleRadius + horizontalMargin);
+                if (gameState[i][j].isEmpty()) {
+                    canvas.drawCircle(cx, cy, mCircleRadius - strokeWidth, mCirclePaint);
+                    canvas.drawCircle(cx, cy, mCircleRadius, mOuterCirclePaint);
+                } else if (gameState[i][j].getPlayer() == ConnectFour.Player.FIRST_PLAYER) {
+                    canvas.drawCircle(cx, cy, mCircleRadius - strokeWidth, mFirstCirclePaint);
+                    canvas.drawCircle(cx, cy, mCircleRadius, mOuterCirclePaint);
+                } else {
+                    canvas.drawCircle(cx, cy, mCircleRadius - strokeWidth, mSecondCirclePaint);
+                    canvas.drawCircle(cx, cy, mCircleRadius, mOuterCirclePaint);
+                }
+
+            }
+        }
     }
 
     @Override
@@ -88,8 +138,8 @@ public class BoardView extends View {
         return mGestureDetector.onTouchEvent(event);
     }
 
-    private int getColumn(int x){
-        return x/mXlineIndex;
+    private int getColumn(int x) {
+        return x / mColumnIndex;
     }
 
     public void setBoardViewListener(BoardViewListener mBoardViewListener) {
@@ -104,16 +154,17 @@ public class BoardView extends View {
 
         @Override
         public boolean onSingleTapUp(MotionEvent e) {
-            mCircleCenterX  = (int) e.getX();
-            mCircleCenterY = (int) e.getY();
+            int x = (int) e.getX();
+            int y = (int) e.getY();
             postInvalidate();
-            mBoardViewListener.playColumn(getColumn(mCircleCenterX));
+            mBoardViewListener.playColumn(getColumn(x));
             return super.onSingleTapUp(e);
         }
     }
 
     public static interface BoardViewListener {
         public ConnectFour getConnectFour();
+
         public void playColumn(int column);
     }
 }

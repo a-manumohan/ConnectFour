@@ -5,8 +5,8 @@ package com.connect.connectfour.game;
  */
 public class ConnectFour {
     private static ConnectFour mSharedConnectFour;
-    private static final int ROW_COUNT = 6;
-    private static final int COLUMN_COUNT = 7;
+    public static final int ROW_COUNT = 6;
+    public static final int COLUMN_COUNT = 7;
 
     private ConnectFourListener mConnectFourListener;
 
@@ -41,7 +41,11 @@ public class ConnectFour {
      * @return true if won
      */
     public boolean checkWhetherWon(Player player, int row, int column) {
-        return checkVerticalPattern(player, column) || checkHorizontalPattern(player, row) || checkDiagonalPattern(player, row, column);
+        boolean vertical = checkVerticalPattern(player,column);
+        boolean horizontal = checkHorizontalPattern(player,row);
+        boolean diagonal = checkDiagonalPattern(player,row,column);
+        return vertical || horizontal || diagonal;
+//        return checkVerticalPattern(player, column) || checkHorizontalPattern(player, row) || checkDiagonalPattern(player, row, column);
     }
 
     private boolean checkVerticalPattern(Player player, int column) {
@@ -82,8 +86,12 @@ public class ConnectFour {
                 break;
             }
             count++;
+            ++i;
             if (count == 4) return true;
         }
+
+        i=1;
+        count=1;
         while (column + i < COLUMN_COUNT && row - i >= 0) { // right up diagonal
             if (mGameState[row - i][column + i].isEmpty() ||
                     mGameState[row - i][column + i].getPlayer() != player) {
@@ -91,8 +99,12 @@ public class ConnectFour {
                 break;
             }
             count++;
+            ++i;
             if (count == 4) return true;
         }
+
+        i=1;
+        count=1;
         while (column - i >= 0 && row + i < ROW_COUNT) { // left down diagonal
             if (mGameState[row + i][column - i].isEmpty() ||
                     mGameState[row + i][column - i].getPlayer() != player) {
@@ -100,14 +112,19 @@ public class ConnectFour {
                 break;
             }
             count++;
+            ++i;
             if (count == 4) return true;
         }
-        while (column + i >= COLUMN_COUNT && row + i < ROW_COUNT) { // right down diagonal
+
+        i=1;
+        count=1;
+        while (column + i < COLUMN_COUNT && row + i < ROW_COUNT) { // right down diagonal
             if (mGameState[row + i][column + i].isEmpty() ||
                     mGameState[row + i][column + i].getPlayer() != player) {
                 break;
             }
             count++;
+            ++i;
             if (count == 4) return true;
         }
         return false;
@@ -119,7 +136,7 @@ public class ConnectFour {
     public boolean checkGameOver() {
         boolean gameOver = true;
         for (int i = 0; i < COLUMN_COUNT; ++i)
-            if (mGameState[0][i].isEmpty()) {
+            if (mGameState[ROW_COUNT-1][i].isEmpty()) {
                 gameOver = false;
                 break;
             }
@@ -148,9 +165,10 @@ public class ConnectFour {
         for (int i = 0; i < ROW_COUNT; ++i)
             for (int j = 0; j < COLUMN_COUNT; ++j)
                 mGameState[i][j].setEmpty(true);
+        mCurrentPlayer = Player.FIRST_PLAYER;
     }
 
-    private static class Node {
+    public static class Node {
         private Player player;
         private boolean empty;
 

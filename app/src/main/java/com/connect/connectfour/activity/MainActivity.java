@@ -1,5 +1,7 @@
 package com.connect.connectfour.activity;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
@@ -11,7 +13,7 @@ import com.connect.connectfour.game.ConnectFour;
 import com.connect.connectfour.view.BoardView;
 
 
-public class MainActivity extends ActionBarActivity implements ConnectFour.ConnectFourListener,BoardView.BoardViewListener{
+public class MainActivity extends ActionBarActivity implements ConnectFour.ConnectFourListener, BoardView.BoardViewListener {
     private ConnectFour mConnectFour;
     private BoardView mBoardView;
 
@@ -41,9 +43,10 @@ public class MainActivity extends ActionBarActivity implements ConnectFour.Conne
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        switch (id){
-            case R.id.action_start:break;
-            case R.id.action_reset:mConnectFour.reset();
+        switch (id) {
+            case R.id.action_reset:
+                mConnectFour.reset();
+                mBoardView.postInvalidate();
         }
 
         return super.onOptionsItemSelected(item);
@@ -51,14 +54,36 @@ public class MainActivity extends ActionBarActivity implements ConnectFour.Conne
 
     @Override
     public void gameOver() {
-        Toast toast = Toast.makeText(this,"Game Over",Toast.LENGTH_LONG);
-        toast.show();
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Game Over");
+        builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                mConnectFour.reset();
+                mBoardView.postInvalidate();
+            }
+        });
+        builder.setMessage("Draw!");
+        builder.show();
     }
 
     @Override
     public void won(ConnectFour.Player player) {
-        Toast toast = Toast.makeText(this,"Player won",Toast.LENGTH_LONG);
-        toast.show();
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Game Over");
+        builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                mConnectFour.reset();
+                mBoardView.postInvalidate();
+            }
+        });
+        if (player == ConnectFour.Player.FIRST_PLAYER) {
+            builder.setMessage("First player won!");
+        } else {
+            builder.setMessage("Second player won!");
+        }
+        builder.show();
     }
 
     @Override
@@ -73,6 +98,6 @@ public class MainActivity extends ActionBarActivity implements ConnectFour.Conne
 
     @Override
     public void playColumn(int column) {
-       mConnectFour.play(column);
+        mConnectFour.play(column);
     }
 }
